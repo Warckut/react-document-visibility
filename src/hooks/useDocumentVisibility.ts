@@ -1,27 +1,44 @@
 import { useState, useEffect, useCallback } from 'react';
 
-function subscribeToVisibilitychange(visibilitychangeHandler: () => void) {
-  document.addEventListener('visibilitychange', visibilitychangeHandler);
-  return () => document.removeEventListener('visibilitychange', visibilitychangeHandler);
-}
-
 function useDocumentVisibility() {
   const [count, setCount] = useState(0);
   const [visible, setVisible] = useState(true);
+  const [listenersState, setListiners] = useState<Set<() => void>>(new Set());
 
   useEffect(() => {
-    return subscribeToVisibilitychange(() => setVisible(!document.hidden));
+    const visibilitychangeHandler = () => setVisible(!document.hidden);
+
+    document.addEventListener('visibilitychange', visibilitychangeHandler);
+    return () => document.removeEventListener('visibilitychange', visibilitychangeHandler);
   }, [setVisible]);
 
   useEffect(() => {
     if (!visible) {
       setCount((prevCount) => prevCount + 1);
     }
-  }, [visible]);
+    listenersState.forEach((listener) => {
+      listener();
+    });
+  }, [visible, listenersState]);
 
-  const onVisibilityChange = useCallback((invoke: (visible: boolean) => void) => {
-    return subscribeToVisibilitychange(() => invoke(!document.hidden));
-  }, []);
+  const onVisibilityChange = useCallback(
+    (invoke: (visible: boolean) => void) => {
+      const visibilitychangeHandler = () => invoke(!document.hidden);
+
+      setListiners((listeners) => {
+        listeners.add(visibilitychangeHandler);
+        return listeners;
+      });
+
+      return () => {
+        setListiners((listeners) => {
+          listeners.delete(visibilitychangeHandler);
+          return listeners;
+        });
+      };
+    },
+    [setListiners]
+  );
 
   return { count, visible, onVisibilityChange };
 }
