@@ -37,7 +37,7 @@ function useDocumentVisibility() {
         });
       };
     },
-    [setListiners]
+    [setListiners],
   );
 
   return { count, visible, onVisibilityChange };
