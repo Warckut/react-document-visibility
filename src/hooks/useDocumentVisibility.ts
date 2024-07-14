@@ -6,6 +6,8 @@ function useDocumentVisibility() {
   const [listenersState, setListiners] = useState<Set<() => void>>(new Set());
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const visibilitychangeHandler = () => setVisible(!document.hidden);
 
     document.addEventListener('visibilitychange', visibilitychangeHandler);
@@ -23,7 +25,7 @@ function useDocumentVisibility() {
 
   const onVisibilityChange = useCallback(
     (invoke: (visible: boolean) => void) => {
-      const visibilitychangeHandler = () => invoke(!document.hidden);
+      const visibilitychangeHandler = () => invoke(visible);
 
       setListiners((listeners) => {
         listeners.add(visibilitychangeHandler);
@@ -37,7 +39,7 @@ function useDocumentVisibility() {
         });
       };
     },
-    [setListiners],
+    [visible, setListiners],
   );
 
   return { count, visible, onVisibilityChange };
