@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import { ListenersType } from './types';
 
 function useDocumentVisibility() {
   const [count, setCount] = useState(0);
   const [visible, setVisible] = useState(true);
-  const [listenersState, setListiners] = useState<Set<() => void>>(new Set());
+  const [listenersState, setListiners] = useState<ListenersType>(new Set());
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
